@@ -1,11 +1,26 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from menu import Menu
 from frame_um import Button
 from frame_dois import Button_Dois
 from frame_tres import Button_Tres
 from frame_quatro import Button_Quatro
 from frame_cinco import Frame as Frame_Cinco
+
+class FrameExibicao(tk.Frame):
+    """Um frame simples para exibir conteúdo de texto com um botão de voltar."""
+    def __init__(self, parent, content, back_command):
+        super().__init__(parent)
+        self.grid(row=0, column=0, sticky='nsew')
+        parent.grid_rowconfigure(0, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+
+        label = tk.Label(self, text=content, justify=tk.LEFT, anchor="nw", 
+                        wraplength=380)
+        label.pack(expand=True, fill='both', padx=10, pady=10)
+
+        back_button = tk.Button(self, text="Voltar", command=back_command)
+        back_button.pack(pady=10)
 
 class App:
     """
@@ -19,12 +34,19 @@ class App:
         self.root.minsize(400, 300)
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
-        self.menu = Menu(root, new_command=self.mostrar_frame_um)
+        self.menu = Menu(
+            self.root, 
+            restart_command=self.mostrar_frame_um,
+            open_command=self.abrir_arquivo,
+            save_as_command=self.salvar_como
+        )
 
         self.base_url = 'https://parallelum.com.br/fipe/api/v1/'
         self.current_frame = None
+        self.resultado_final = None #salva o endereço final para salvar depois
 
-        # Variáveis para armazenar o estado da seleção do usuário ao longo do fluxo
+        # Variáveis para armazenar o estado da seleção do usuário ao longo 
+        # do fluxo
         self.tipo_veiculo = None
         self.codigo_marca = None
         self.modelo_marca = None
@@ -49,6 +71,7 @@ class App:
         self.codigo_marca = None
         self.modelo_marca = None
         self.ano_modelo = None
+        self.resultado_final = None
         self.current_frame = Button(self.root, command=self.on_veiculo_selecionado)
 
     def on_veiculo_selecionado(self, tipo_veiculo):
@@ -104,9 +127,11 @@ class App:
     def on_ano_selecionado(self,ano):
         """
         Callback executado quando um ano é selecionado no frame_quatro.
-        Armazena o ano/combustível e avança para a tela final de detalhes do veículo.
+        Armazena o ano/combustível e avança para a tela final de detalhes do 
+        veículo.
 
-        :param ano: A string que representa o ano e o tipo de combustível (ex: '2014-1').
+        :param ano: A string que representa o ano e o tipo de combustível 
+        (ex: '2014-1').
         """
         self.ano_modelo = ano
         print(f"Ano selecionado do modelo: {self.ano_modelo}")
@@ -115,8 +140,12 @@ class App:
         url_final = f'{self.base_url}{self.tipo_veiculo}/marcas/{
             self.codigo_marca}/modelos/{self.modelo_marca}/anos/{self.ano_modelo}/'
         # Passamos o método que volta para a tela 4 como comando
-        self.current_frame = Frame_Cinco(self.root, url=url_final,
-                                        command=self.mostrar_frame_quatro)
+        self.current_frame = Frame_Cinco(
+            self.root, 
+            url=url_final,
+            back_command=self.mostrar_frame_um,
+            result_callback=self.on_resultado_obtido 
+        )
     
     def mostrar_frame_quatro(self):
         """
@@ -131,6 +160,56 @@ class App:
         self.current_frame = Button_Quatro(self.root, url=url_anos, 
                                         command=self.on_ano_selecionado)
 
+    def on_resultado_obtido(self,resultado):
+        """Salva os dados do resultado final no estado de aplicação."""
+        self.resultado_final = resultado
+    
+    def abrir_arquivo(self):
+        """Abre um arquivo de texto e exibe seu conteúdo em um novo frame."""
+        filepath = filedialog.askopenfilename(
+            filetypes=[("Arquivos de Texto", "*.txt"), ("Todos os arquivos", "*.*")]
+        )
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            self.limpar_frame_atual()
+            self.current_frame = FrameExibicao(self.root, content, 
+                                            back_command=self.mostrar_frame_um)
+        except Exception as e:
+            messagebox.showerror("Erro ao Abrir", 
+                                f"Não foi possível ler o arquivo: {e}")
+
+    def salvar_como(self):
+        """Abre o diálogo para salvar o arquivo."""
+        self.salvar_arquivo()
+
+    def salvar_arquivo(self):
+        """Abre a janela de diálogo para salvar o arquivo com o resultado."""
+        if not self.resultado_final:
+            messagebox.showwarning("Aviso", 
+                "Nenhum resultado para salvar. Realize uma consulta primeiro.")
+            return
+
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Arquivos de Texto", "*.txt"), 
+                    ('Arquivos Json','*,json'), ("Todos os arquivos", "*.*")]
+        )
+
+        if not filepath:
+            return  # Usuário cancelou a janela de salvar
+
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(self.resultado_final)
+            messagebox.showinfo("Sucesso", f"Consulta salva em:\n{filepath}")
+        except Exception as e:
+            messagebox.showerror("Erro ao Salvar", f"Ocorreu um erro ao tentar salvar o arquivo: {e}")
+
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)

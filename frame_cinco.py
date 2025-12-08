@@ -1,40 +1,44 @@
 import tkinter as tk
 import requests
 from tkinter import messagebox
+
 fonte = 'Arial 12 bold'
 
 class Frame(tk.Frame):
     """
     Frame final que exibe os detalhes completos de um veículo consultado.
-    Também contém botões para 'Voltar' ou 'Salvar' a pesquisa.
+    Também contém um botão para 'Voltar'.
     """
-    def __init__(self, parent, url, command=None):
+    def __init__(self, parent, url, back_command=None, result_callback=None):
         """
         Construtor do Frame.
 
         :param parent: O widget pai (janela principal).
         :param url: A URL final da API para buscar os detalhes do veículo.
-        :param command: A função (callback) a ser chamada quando o botão 
+        :param back_command: A função (callback) a ser chamada quando o botão
         'Voltar' é clicado.
+        :param result_callback: A função (callback) para passar o resultado final.
         """
         super().__init__(parent)
         self.parent = parent
         self.url = url
-        self.command_callback = command
+        self.back_command = back_command
+        self.result_callback = result_callback
 
         self.carregar_dados_veiculo()
 
     def carregar_dados_veiculo(self):
-        """Busca os dados finais do veículo e os exibe em labels."""
+        """Busca os dados finais do veículo, os exibe e os passa para o callback."""
         self.grid(row=0, column=0, sticky='nsew')
         self.columnconfigure(0, weight=1)
+        dados_formatados_str = ""  # Inicializa a string de resultado
+        i = -1 # Garante que 'i' exista caso a requisição falhe
+
         try:
-            # Faz a requisição à API para obter os detalhes do veículo.
             response = requests.get(self.url)
             response.raise_for_status()
             dados_veiculo = response.json()
 
-            # Dicionário para mapear chaves da API para texto de exibição
             labels_info = {
                 'Valor': 'Valor FIPE:',
                 'Marca': 'Marca:',
@@ -44,40 +48,31 @@ class Frame(tk.Frame):
                 'CodigoFipe': 'Código FIPE:',
                 'MesReferencia': 'Mês de Referência:'
             }
-
-            # Itera sobre o dicionário para criar e posicionar os labels de 
-            # forma dinâmica.
+            
+            linhas_resultado = []
             for i, (chave, texto_label) in enumerate(labels_info.items()):
                 valor = dados_veiculo.get(chave, 'N/A')
                 tk.Label(self, text=f"{texto_label}", font=fonte).grid(row=i, 
                                             column=0, sticky='e', padx=5, pady=5)
                 tk.Label(self, text=f"{valor}", font='Arial 12').grid(
                                     row=i, column=1, sticky='w', padx=5, pady=5)
+                linhas_resultado.append(f"{texto_label} {valor}")
             
-            
+            dados_formatados_str = "\n".join(linhas_resultado)
+
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Erro de Rede", 
-                                f"Não foi possível buscar os dados do veículo: {e}")
-            # Se houver erro, a variável 'i' pode não ter sido definida.
-            # Definimos um valor padrão para que os botões possam ser criados
-            # mesmo assim.
-            i = -1 
+                            f"Não foi possível buscar os dados do veículo: {e}")
+        
+        # Passa o resultado para o callback na classe App, se existir
+        if self.result_callback:
+            self.result_callback(dados_formatados_str)
 
-        # Adiciona os botões de ação na parte inferior da tela.
-        tk.Button(self, text='Voltar', command=self.voltar_tela).grid(row=i+1, 
-                                                column=0, columnspan=2, pady=10)
-        tk.Button(self,text='Salvar',command=self.salvar_pesquisa).grid(row=i+1,
-                                                column=1,columnspan=2,padx=10)
-    def voltar_tela(self):
-        """Chama a função de callback (se existir) para retornar à tela anterior."""
-        if self.command_callback:
-            self.command_callback()
+        # Adiciona o botão de voltar, usando o back_command diretamente
+        if self.back_command:
+            tk.Button(self,text='Voltar',command=self.back_command).grid(row=i+1,
+                                                column=0,columnspan=2, pady=10)
 
-    def salvar_pesquisa(self):
-        """Função placeholder para a lógica de salvar a pesquisa."""
-        #logica para salvar em json?
-        pass 
-    
 if __name__ == '__main__':
     root = tk.Tk()
     root.title("Teste de Formulário")

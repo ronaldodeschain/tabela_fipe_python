@@ -1,48 +1,58 @@
 import tkinter as tk
-from tkinter import messagebox
 
 class Menu:
     """
     Cria e gerencia a barra de menu principal (File, etc.) para a janela da aplicação.
+    Esta classe é responsável apenas pela UI do menu, delegando as ações para 
+    os comandos (callbacks) fornecidos.
     """
-    def __init__(self, root_window, new_command=None):
+    def __init__(self, root_window, restart_command=None, open_command=None, save_as_command=None):
         """
         Construtor da classe Menu.
 
         :param root_window: A janela principal (tk.Tk) onde o menu será inserido.
-        :param new_command: A função (callback) a ser executada quando o item de menu 'New' é clicado.
+        :param restart_command: Callback a ser executado para o item de menu 'Novo'.
+        :param open_command: Callback a ser executado para o item de menu 'Abrir'.
+        :param save_as_command: Callback a ser executado para o item de menu 'Salvar Como...'.
         """
         main_menu = tk.Menu(root_window)
         root_window.config(menu=main_menu)
-        self.new_command = new_command
 
-        # --- Menu "File" ---
+        # --- Menu "Arquivo" ---
         file_menu = tk.Menu(main_menu, tearoff=0)
-        # O comando 'New' chama o método 'iniciar_nova_consulta'.
-        file_menu.add_command(label='New', command=self.iniciar_nova_consulta)
-        file_menu.add_command(label='Open')
-        file_menu.add_command(label='Save')
-        file_menu.add_separator()
-        # O comando 'Exit' fecha a aplicação.
-        file_menu.add_command(label='Exit', command=root_window.destroy)
         
-        # Adiciona o menu "File" à barra de menu principal.
-        main_menu.add_cascade(label='File', menu=file_menu)
+        # Conecta os itens de menu diretamente aos callbacks fornecidos
+        if restart_command:
+            file_menu.add_command(label='Novo', command=restart_command)
+        
+        if open_command:
+            file_menu.add_command(label='Abrir', command=open_command)
 
-    def iniciar_nova_consulta(self):
-        """
-        Função chamada pelo item de menu 'New'.
-        Executa o comando de callback fornecido no construtor para reiniciar
-        o fluxo da aplicação.
-        """
-        if self.new_command:
-            self.new_command()
-            print('Aplicação reiniciada para a primeira tela')
-            
+        if save_as_command:
+            file_menu.add_command(label='Salvar como...', command=save_as_command)
+
+        file_menu.add_separator()
+        file_menu.add_command(label='Sair', command=root_window.destroy)
+        
+        main_menu.add_cascade(label='Arquivo', menu=file_menu)
 
 if __name__ == '__main__':
+    # Bloco para teste visual do componente de menu
+    def mock_action(action_name):
+        print(f"Ação '{action_name}' foi chamada!")
+
     root = tk.Tk()
     root.title("Teste de Menu")
     root.geometry("300x200")
-    menu_app = Menu(root)
+    
+    # Instancia o menu com funções de exemplo (mocks)
+    menu_app = Menu(
+        root,
+        restart_command=lambda: mock_action("Novo"),
+        open_command=lambda: mock_action("Abrir"),
+        save_as_command=lambda: mock_action("Salvar Como")
+    )
+    
+    tk.Label(root, text="Menu configurado no modo de teste.").pack(pady=20)
+    
     root.mainloop()
