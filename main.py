@@ -175,6 +175,7 @@ class App:
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
+                print(content) #posso adicionar aqui a logica de criar a lista?
             self.limpar_frame_atual()
             self.current_frame = FrameExibicao(self.root, content, 
                                             back_command=self.mostrar_frame_um)
