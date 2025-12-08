@@ -33,8 +33,21 @@ class Menu:
 
         file_menu.add_separator()
         file_menu.add_command(label='Sair', command=root_window.destroy)
-        
+
+        # -- Menu Secundário -- 
+        edit_menu = tk.Menu(main_menu, tearoff=0)
+        edit_menu.add_command(label='Desfazer')
+        edit_menu.add_command(label='Refazer')
+
+        # -- Menu Help -- 
+        help_menu = tk.Menu(main_menu, tearoff=0)
+        help_menu.add_command(label='Sobre')
+        help_menu.add_command(label='Comandos')
+
+        # -- COnstrói a estrutura do Menu -- 
         main_menu.add_cascade(label='Arquivo', menu=file_menu)
+        main_menu.add_cascade(label='Editar', menu=edit_menu)
+        main_menu.add_cascade(label='Ajuda', menu=help_menu)
 
 if __name__ == '__main__':
     # Bloco para teste visual do componente de menu
