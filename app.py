@@ -261,9 +261,20 @@ class App:
             self.root,
             self.dados,
             add_command=self.adicionar_veiculo_ao_grafico,
-            back_command=self.mostrar_frame_um
+            back_command=self.mostrar_frame_um,
+            save_graphic=self.salvar_grafico
         )
     
+    def salvar_grafico(self):
+        print('clickty clackty zoom')
+
+    #como tirar esse texto para outro arquivo. Criar uma função para dar load
+    #em um txt?
+    #site referencia para modelo de site da aplicação
+    #https://voiston.com/
+    texto = "Scooby Doo!"
+
     def sobre_nos(self):
-        print('clickty clackty')
+        messagebox.showinfo("Exibindo o sobre",f'{self.texto}')
         #limpar tela, chamar self.current_frame = sobre.py(self.root)
+        

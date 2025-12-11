@@ -12,7 +12,8 @@ class FrameGrafico(tk.Frame):
     Um Frame que exibe um gráfico de barras comparando os valores de veículos
     e permite adicionar mais veículos ao gráfico a partir de arquivos.
     """
-    def __init__(self, parent, dados, add_command=None, back_command=None):
+    def __init__(self, parent, dados, add_command=None, back_command=None,
+                 save_graphic=None):
         """
         Construtor do FrameGrafico.
 
@@ -23,6 +24,8 @@ class FrameGrafico(tk.Frame):
                             'Adicionar Veículo'.
         :param back_command: (function, opcional) Callback para o botão
                             'Voltar'.
+        :para save_command: (function, opcional) Callback para o botão
+                            'Salvar Gráfico'.
         """
         super().__init__(parent)
         self.grid(row=0, column=0, sticky='nsew')
@@ -32,6 +35,7 @@ class FrameGrafico(tk.Frame):
         self.dados = dados
         self.add_command = add_command
         self.back_command = back_command
+        self.save_graphic= save_graphic
 
         # Configura o grid do frame para o gráfico e os botões
         self.rowconfigure(0, weight=1)
@@ -58,6 +62,11 @@ class FrameGrafico(tk.Frame):
             tk.Button(botoes_frame, text="Voltar", 
                     command=self.back_command).pack(side=tk.LEFT, padx=5)
 
+        if self.save_graphic:
+            tk.Button(botoes_frame, text="Salvar Gráfico", 
+                    command=self.save_graphic).pack(side=tk.LEFT, padx=5)
+
+        # Atualiza o gráfico com os dados atuais
         self.atualizar_grafico()
 
     def atualizar_grafico(self):

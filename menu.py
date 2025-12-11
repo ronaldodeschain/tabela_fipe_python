@@ -44,6 +44,7 @@ class Menu:
 
         
         # -- Menu Secundário -- 
+        #salvar gráfico -
         graphic_menu = tk.Menu(main_menu, tearoff=0)
         if load_graphic:
             graphic_menu.add_command(label='Carregar Gráfico',
